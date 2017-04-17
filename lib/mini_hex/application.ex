@@ -6,7 +6,10 @@ defmodule MiniHex.Application do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    children = []
+    port = Application.fetch_env!(:mini_hex, :port)
+    children = [
+      Plug.Adapters.Cowboy.child_spec(:http, MiniHex.Router, [], [port: port])
+    ]
 
     opts = [strategy: :one_for_one, name: MiniHex.Supervisor]
     Supervisor.start_link(children, opts)

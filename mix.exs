@@ -16,6 +16,9 @@ defmodule MiniHex.Mixfile do
   end
 
   defp deps do
-    []
+    [
+      {:cowboy, "~> 1.0"},
+      {:plug, "~> 1.3"}
+    ]
   end
 end
