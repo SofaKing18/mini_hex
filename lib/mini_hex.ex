@@ -1,2 +1,0 @@
-defmodule MiniHex do
-end
