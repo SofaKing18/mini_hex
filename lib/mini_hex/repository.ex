@@ -1,5 +1,5 @@
 defmodule MiniHex.Repository.Package do
-  defstruct [:name]
+  defstruct [name: nil, releases: []]
 end
 
 defmodule MiniHex.Repository do
@@ -17,5 +17,9 @@ defmodule MiniHex.Repository do
 
   def packages() do
     Agent.get(@name, &Map.values(&1))
+  end
+
+  def fetch(name) do
+    Agent.get(@name, &Map.fetch(&1, name))
   end
 end

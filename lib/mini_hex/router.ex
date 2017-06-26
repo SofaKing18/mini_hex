@@ -14,6 +14,16 @@ defmodule MiniHex.Router do
     send_resp(conn, 200, body)
   end
 
+  get "/packages/:name" do
+    case Repository.fetch(name) do
+      {:ok, package} ->
+        body = RegistryBuilder.encode_package(package)
+        send_resp(conn, 200, body)
+      :error ->
+        send_resp(conn, 404, "not found")
+    end
+  end
+
   match _ do
     send_resp(conn, 404, "not found")
   end

@@ -10,6 +10,14 @@ defmodule MiniHex.RegistryBuilder do
     decode(body, :hex_pb_names, :Names)
   end
 
+  def encode_package(package) do
+    encode(package, :hex_pb_package, :Package)
+  end
+
+  def decode_package(body) do
+    decode(body, :hex_pb_package, :Package)
+  end
+
   defp encode(payload, module, message) do
     payload
     |> module.encode_msg(message)
