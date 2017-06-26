@@ -44,11 +44,13 @@ defmodule MiniHex.RouterTest do
     :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
     :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
 
+    :ok = Repository.retire("foo", "1.1.0", :security, "CVE-000")
+
     conn = get("/versions")
     assert conn.status == 200
     assert RegistryBuilder.decode_versions(conn.resp_body) ==
            %{packages: [
-             %{name: "foo", versions: ["1.0.0", "1.1.0"], retired: []}]}
+             %{name: "foo", versions: ["1.0.0", "1.1.0"], retired: [1]}]}
   end
 
   defp get(path) do

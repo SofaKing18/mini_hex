@@ -13,10 +13,12 @@ defmodule MiniHex.RegistryBuilder do
   def encode_versions(packages) do
     packages =
       for %{name: name, releases: releases} <- packages do
+        retired = for {release, index} <- Enum.with_index(releases), release.retirement_status != nil, do: index
+
         %{
           name: name,
           versions: Enum.map(releases, & &1.version),
-          retired: []
+          retired: retired
         }
       end
 
