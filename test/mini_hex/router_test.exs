@@ -25,6 +25,18 @@ defmodule MiniHex.RouterTest do
            %{packages: [%{name: "foo"}]}
   end
 
+  test "/versions" do
+    :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
+    :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
+    :ok = Repository.retire("foo", "1.1.0", :RETIRED_SECURITY, "CVE-000")
+
+    conn = get("/versions")
+    assert conn.status == 200
+    assert RegistryBuilder.decode_versions(conn.resp_body) ==
+           %{packages: [
+             %{name: "foo", versions: ["1.0.0", "1.1.0"], retired: [1]}]}
+  end
+
   test "/packages/:name" do
     :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [%{package: "bar", requirement: "~> 1.0"}])
     :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
@@ -39,18 +51,6 @@ defmodule MiniHex.RouterTest do
 
     conn = get("/packages/bar")
     assert conn.status == 404
-  end
-
-  test "/versions" do
-    :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
-    :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
-    :ok = Repository.retire("foo", "1.1.0", :RETIRED_SECURITY, "CVE-000")
-
-    conn = get("/versions")
-    assert conn.status == 200
-    assert RegistryBuilder.decode_versions(conn.resp_body) ==
-           %{packages: [
-             %{name: "foo", versions: ["1.0.0", "1.1.0"], retired: [1]}]}
   end
 
   defp get(path) do
