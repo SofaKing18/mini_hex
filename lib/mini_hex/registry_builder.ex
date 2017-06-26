@@ -10,6 +10,23 @@ defmodule MiniHex.RegistryBuilder do
     decode(body, :hex_pb_names, :Names)
   end
 
+  def encode_versions(packages) do
+    packages =
+      for %{name: name, releases: releases} <- packages do
+        %{
+          name: name,
+          versions: Enum.map(releases, & &1.version),
+          retired: []
+        }
+      end
+
+    encode(%{packages: packages}, :hex_pb_versions, :Versions)
+  end
+
+  def decode_versions(body) do
+    decode(body, :hex_pb_versions, :Versions)
+  end
+
   def encode_package(package) do
     encode(package, :hex_pb_package, :Package)
   end

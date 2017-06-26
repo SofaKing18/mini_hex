@@ -40,6 +40,17 @@ defmodule MiniHex.RouterTest do
     assert conn.status == 404
   end
 
+  test "/versions" do
+    :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
+    :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
+
+    conn = get("/versions")
+    assert conn.status == 200
+    assert RegistryBuilder.decode_versions(conn.resp_body) ==
+           %{packages: [
+             %{name: "foo", versions: ["1.0.0", "1.1.0"], retired: []}]}
+  end
+
   defp get(path) do
     conn = conn(:get, path)
     MiniHex.Router.call(conn, @opts)

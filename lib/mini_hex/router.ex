@@ -14,6 +14,12 @@ defmodule MiniHex.Router do
     send_resp(conn, 200, body)
   end
 
+  get "/versions" do
+    packages = Repository.packages()
+    body = RegistryBuilder.encode_versions(packages)
+    send_resp(conn, 200, body)
+  end
+
   get "/packages/:name" do
     case Repository.fetch(name) do
       {:ok, package} ->
