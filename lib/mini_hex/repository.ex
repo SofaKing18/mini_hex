@@ -22,4 +22,8 @@ defmodule MiniHex.Repository do
   def fetch(name) do
     Agent.get(@name, &Map.fetch(&1, name))
   end
+
+  def clear() do
+    Agent.update(@name, fn _ -> %{} end)
+  end
 end
