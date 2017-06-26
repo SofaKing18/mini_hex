@@ -8,6 +8,11 @@ defmodule MiniHex.Repository.Release do
   defstruct [version: nil, checksum: "", dependencies: []]
 end
 
+defmodule MiniHex.Repository.Dependency do
+  @enforce_keys [:package, :requirement]
+  defstruct [package: nil, requirement: "", optional: false, app: nil]
+end
+
 defmodule MiniHex.Repository do
   alias MiniHex.Repository.{Package, Release}
 
