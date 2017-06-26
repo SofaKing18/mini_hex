@@ -2,8 +2,7 @@ defmodule MiniHex.RouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias MiniHex.RegistryBuilder
-  alias MiniHex.Repository
+  alias MiniHex.{RegistryBuilder, Repository}
 
   @opts MiniHex.Router.init([])
 
@@ -18,7 +17,7 @@ defmodule MiniHex.RouterTest do
     assert RegistryBuilder.decode_names(conn.resp_body) == 
            %{packages: []}
 
-    :ok = Repository.publish("foo")
+    :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
 
     conn = get("/names")
     assert conn.status == 200
@@ -27,12 +26,12 @@ defmodule MiniHex.RouterTest do
   end
 
   test "/packages/:name" do
-    :ok = Repository.publish("foo")
+    :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
 
     conn = get("/packages/foo")
     assert conn.status == 200
     assert RegistryBuilder.decode_package(conn.resp_body) ==
-           %{releases: []}
+           %{releases: [%{version: "1.0.0", checksum: "dummy-checksum", dependencies: []}]}
 
     conn = get("/packages/bar")
     assert conn.status == 404

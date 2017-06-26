@@ -1,9 +1,15 @@
 defmodule MiniHex.Repository.Package do
+  @enforce_keys [:name]
   defstruct [name: nil, releases: []]
 end
 
+defmodule MiniHex.Repository.Release do
+  @enforce_keys [:version]
+  defstruct [version: nil, checksum: "", dependencies: []]
+end
+
 defmodule MiniHex.Repository do
-  alias MiniHex.Repository.Package
+  alias MiniHex.Repository.{Package, Release}
 
   @name __MODULE__
 
@@ -11,8 +17,10 @@ defmodule MiniHex.Repository do
     Agent.start_link(fn -> %{} end, name: @name)
   end
 
-  def publish(name) do
-    Agent.update(@name, &Map.put(&1, name, %Package{name: name}))
+  def publish(name, version, checksum, dependencies) do
+    release = %Release{version: version, checksum: checksum, dependencies: dependencies}
+    package = %Package{name: name, releases: [release]}
+    Agent.update(@name, &Map.put(&1, name, package))
   end
 
   def packages() do
