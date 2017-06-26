@@ -20,7 +20,13 @@ defmodule MiniHex.Repository do
   def publish(name, version, checksum, dependencies) do
     release = %Release{version: version, checksum: checksum, dependencies: dependencies}
     package = %Package{name: name, releases: [release]}
-    Agent.update(@name, &Map.put(&1, name, package))
+
+    Agent.update(@name, &Map.update(&1, name, package, fn package -> add_release(package, release) end))
+  end
+
+  defp add_release(package, release) do
+    true = not release.version in Enum.map(package.releases, & &1.version)
+    %{package | releases: package.releases ++ [release]}
   end
 
   def packages() do

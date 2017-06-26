@@ -27,11 +27,14 @@ defmodule MiniHex.RouterTest do
 
   test "/packages/:name" do
     :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
+    :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
 
     conn = get("/packages/foo")
     assert conn.status == 200
     assert RegistryBuilder.decode_package(conn.resp_body) ==
-           %{releases: [%{version: "1.0.0", checksum: "dummy-checksum", dependencies: []}]}
+           %{releases: [
+             %{version: "1.0.0", checksum: "dummy-checksum", dependencies: []},
+             %{version: "1.1.0", checksum: "dummy-checksum", dependencies: []}]}
 
     conn = get("/packages/bar")
     assert conn.status == 404
