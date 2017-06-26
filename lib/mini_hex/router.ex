@@ -1,12 +1,16 @@
 defmodule MiniHex.Router do
   use Plug.Router
 
+  alias MiniHex.RegistryBuilder
+
   plug Plug.Logger, log: :debug
   plug :match
   plug :dispatch
 
-  get "/" do
-    send_resp(conn, 200, "hello")
+  get "/names" do
+    packages = ["foo"]
+    payload = RegistryBuilder.build_names(packages)
+    send_resp(conn, 200, payload)
   end
 
   match _ do

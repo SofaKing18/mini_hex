@@ -4,11 +4,11 @@ defmodule MiniHex.RouterTest do
 
   @opts MiniHex.Router.init([])
 
-  test "/" do
-    conn = conn(:get, "/")
+  test "/names" do
+    conn = conn(:get, "/names")
     conn = MiniHex.Router.call(conn, @opts)
 
     assert conn.status == 200
-    assert conn.resp_body == "hello"
+    assert conn.resp_body == "foo"
   end
 end
