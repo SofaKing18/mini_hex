@@ -5,7 +5,7 @@ end
 
 defmodule MiniHex.Repository.Release do
   @enforce_keys [:version]
-  defstruct [version: nil, checksum: "", dependencies: [], retirement_status: nil]
+  defstruct [version: nil, checksum: "", dependencies: [], retired: nil]
 end
 
 defmodule MiniHex.Repository.RetirementStatus do
@@ -44,7 +44,7 @@ defmodule MiniHex.Repository do
     releases =
       Enum.map(package.releases, fn release ->
         if release.version == version do
-          %{release | retirement_status: %RetirementStatus{reason: reason, message: message}}
+          %{release | retired: %RetirementStatus{reason: reason, message: message}}
         else
           release
         end

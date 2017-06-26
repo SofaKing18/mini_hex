@@ -28,13 +28,14 @@ defmodule MiniHex.RouterTest do
   test "/packages/:name" do
     :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [%{package: "bar", requirement: "~> 1.0"}])
     :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
+    :ok = Repository.retire("foo", "1.1.0", :RETIRED_SECURITY, "CVE-000")
 
     conn = get("/packages/foo")
     assert conn.status == 200
     assert RegistryBuilder.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "1.0.0", checksum: "dummy-checksum", dependencies: [%{package: "bar", requirement: "~> 1.0"}]},
-             %{version: "1.1.0", checksum: "dummy-checksum", dependencies: []}]}
+             %{version: "1.1.0", checksum: "dummy-checksum", dependencies: [], retired: %{message: "CVE-000", reason: :RETIRED_SECURITY}}]}
 
     conn = get("/packages/bar")
     assert conn.status == 404
@@ -43,8 +44,7 @@ defmodule MiniHex.RouterTest do
   test "/versions" do
     :ok = Repository.publish("foo", "1.0.0", "dummy-checksum", [])
     :ok = Repository.publish("foo", "1.1.0", "dummy-checksum", [])
-
-    :ok = Repository.retire("foo", "1.1.0", :security, "CVE-000")
+    :ok = Repository.retire("foo", "1.1.0", :RETIRED_SECURITY, "CVE-000")
 
     conn = get("/versions")
     assert conn.status == 200

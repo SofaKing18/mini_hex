@@ -13,7 +13,7 @@ defmodule MiniHex.RegistryBuilder do
   def encode_versions(packages) do
     packages =
       for %{name: name, releases: releases} <- packages do
-        retired = for {release, index} <- Enum.with_index(releases), release.retirement_status != nil, do: index
+        retired = for {release, index} <- Enum.with_index(releases), release.retired != nil, do: index
 
         %{
           name: name,
@@ -30,8 +30,12 @@ defmodule MiniHex.RegistryBuilder do
   end
 
   def encode_package(package) do
-    encode(package, :hex_pb_package, :Package)
+    releases = Enum.map(package.releases, &remove_empty_retired/1)
+    encode(%{releases: releases}, :hex_pb_package, :Package)
   end
+
+  defp remove_empty_retired(%{retired: nil} = release), do: Map.delete(release, :retired)
+  defp remove_empty_retired(release), do: release
 
   def decode_package(body) do
     decode(body, :hex_pb_package, :Package)
