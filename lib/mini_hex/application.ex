@@ -4,10 +4,11 @@ defmodule MiniHex.Application do
   use Application
 
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
+    import Supervisor.Spec
 
     port = Application.fetch_env!(:mini_hex, :port)
     children = [
+      worker(MiniHex.Repository, []),
       Plug.Adapters.Cowboy.child_spec(:http, MiniHex.Router, [], [port: port])
     ]
 

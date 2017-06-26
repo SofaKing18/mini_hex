@@ -1,6 +1,7 @@
 defmodule MiniHex.Router do
   use Plug.Router
 
+  alias MiniHex.Repository
   alias MiniHex.RegistryBuilder
 
   plug Plug.Logger, log: :debug
@@ -8,7 +9,7 @@ defmodule MiniHex.Router do
   plug :dispatch
 
   get "/names" do
-    packages = [%{name: "foo"}]
+    packages = Repository.packages()
     body = RegistryBuilder.encode_names(packages)
     send_resp(conn, 200, body)
   end
