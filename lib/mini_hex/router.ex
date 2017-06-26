@@ -8,9 +8,9 @@ defmodule MiniHex.Router do
   plug :dispatch
 
   get "/names" do
-    packages = ["foo"]
-    payload = RegistryBuilder.build_names(packages)
-    send_resp(conn, 200, payload)
+    packages = [%{name: "foo"}]
+    body = RegistryBuilder.encode_names(packages)
+    send_resp(conn, 200, body)
   end
 
   match _ do

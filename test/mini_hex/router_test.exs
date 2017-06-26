@@ -9,6 +9,7 @@ defmodule MiniHex.RouterTest do
     conn = MiniHex.Router.call(conn, @opts)
 
     assert conn.status == 200
-    assert conn.resp_body == "foo"
+    assert MiniHex.RegistryBuilder.decode_names(conn.resp_body) ==
+           %{packages: [%{name: "foo"}]}
   end
 end

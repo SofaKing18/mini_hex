@@ -2,13 +2,28 @@
 defmodule MiniHex.RegistryBuilder do
   @signature "dummy"
 
-  def build_names(packages) do
-    packages = for name <- packages, do: %{name: name}
+  def encode_names(packages) do
+    encode(%{packages: packages}, :hex_pb_names, :Names)
+  end
 
-    %{packages: packages}
-    |> :hex_pb_names.encode_msg(:Names)
+  def decode_names(body) do
+    decode(body, :hex_pb_names, :Names)
+  end
+
+  defp encode(payload, module, message) do
+    payload
+    |> module.encode_msg(message)
     |> sign_protobuf()
     |> :zlib.gzip()
+  end
+
+  defp decode(body, module, message) do
+    %{payload: payload, signature: _signature} =
+      body
+      |> :zlib.gunzip()
+      |> :hex_pb_signed.decode_msg(:Signed)
+
+    module.decode_msg(payload, message)
   end
 
   defp sign_protobuf(contents) do
