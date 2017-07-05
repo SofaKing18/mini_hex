@@ -28,6 +28,8 @@ defmodule MiniHex.Repository do
     Agent.start_link(fn -> %{} end, name: @name)
   end
 
+  @keys ~w(app optional requirement)
+
   def publish(name, version, binary) when is_binary(binary) do
     data_dir = Application.fetch_env!(:mini_hex, :data_dir)
     File.mkdir_p!(data_dir)
@@ -35,7 +37,17 @@ defmodule MiniHex.Repository do
     File.write!(path, binary)
 
     {:ok, files, metadata} = Tar.unpack({:binary, binary}, :mini_hex, name, version)
-    dependencies = metadata["requirements"]
+
+    dependencies =
+      Enum.map(metadata["requirements"], fn list ->
+        Enum.into(list, %{}, fn
+          {"name", value} ->
+            {:package, value}
+          {key, value} when key in @keys ->
+            {String.to_atom(key), value}
+        end)
+      end)
+
     publish(name, version, files['CHECKSUM'], dependencies)
   end
 
