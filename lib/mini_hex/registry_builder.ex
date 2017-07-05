@@ -1,8 +1,10 @@
 # Based on https://github.com/hexpm/hexpm/blob/492d21eb2376a3374bf315d693a3820ae9a3a6e9/lib/hexpm/repository/registry_builder.ex
 defmodule MiniHex.RegistryBuilder do
+  @repository "mini_hex"
   @signature "dummy"
 
   def encode_names(packages) do
+    packages = for %{name: name} <- packages, do: %{name: name, repository: @repository}
     encode(%{packages: packages}, :hex_pb_names, :Names)
   end
 
@@ -18,7 +20,8 @@ defmodule MiniHex.RegistryBuilder do
         %{
           name: name,
           versions: Enum.map(releases, & &1.version),
-          retired: retired
+          retired: retired,
+          repository: @repository
         }
       end
 

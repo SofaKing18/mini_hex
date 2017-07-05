@@ -22,7 +22,7 @@ defmodule MiniHex.RouterTest do
     conn = get("/names")
     assert conn.status == 200
     assert RegistryBuilder.decode_names(conn.resp_body) ==
-           %{packages: [%{name: "foo"}]}
+           %{packages: [%{name: "foo", repository: "mini_hex"}]}
   end
 
   test "/versions" do
@@ -34,7 +34,7 @@ defmodule MiniHex.RouterTest do
     assert conn.status == 200
     assert RegistryBuilder.decode_versions(conn.resp_body) ==
            %{packages: [
-             %{name: "foo", versions: ["0.1.0", "0.1.1"], retired: [1]}]}
+             %{name: "foo", versions: ["0.1.0", "0.1.1"], retired: [1], repository: "mini_hex"}]}
   end
 
   test "/packages/:name" do
@@ -59,14 +59,14 @@ defmodule MiniHex.RouterTest do
   test "/packages/:name with dependencies" do
     :ok = Repository.publish("foo", "0.1.0", read_fixture("foo-0.1.0/foo-0.1.0.tar"))
     :ok = Repository.publish("bar", "0.1.0", read_fixture("bar-0.1.0/bar-0.1.0.tar"))
-    checksum = "43C48CE1EE3A1DD1C575AEBF6B203C083B6BAD25485B7FDE4C66804FAD663F6F"
+    checksum = "AEC009CD3EDC2118CB43BCD6B7003F7776F3EB0AFCC8D5AA609DD57017BFC6F8"
 
     conn = get("/packages/bar")
     assert conn.status == 200
     assert RegistryBuilder.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "0.1.0", checksum: checksum, dependencies: [
-               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1"}]}]}
+               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
   end
 
   test "/tarballs/:name_version.tar" do

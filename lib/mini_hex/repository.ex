@@ -15,7 +15,7 @@ end
 
 defmodule MiniHex.Repository.Dependency do
   @enforce_keys [:package, :requirement]
-  defstruct [package: nil, requirement: "", optional: false, app: nil]
+  defstruct [package: nil, requirement: "", optional: false, app: nil, repository: nil]
 end
 
 defmodule MiniHex.Repository do
