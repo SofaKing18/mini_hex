@@ -25,7 +25,7 @@ defmodule Foo.Mixfile do
 
   defp deps do
     [
-      {:foo, "~> 0.1"},
+      {:foo, "~> 0.1", repo: :mini_hex},
     ]
   end
 end
