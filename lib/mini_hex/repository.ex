@@ -20,11 +20,18 @@ end
 
 defmodule MiniHex.Repository do
   alias MiniHex.Repository.{Package, Release, RetirementStatus}
+  alias MiniHex.Tar
 
   @name __MODULE__
 
   def start_link() do
     Agent.start_link(fn -> %{} end, name: @name)
+  end
+
+  def publish(name, version, binary) when is_binary(binary) do
+    {:ok, files, metadata} = Tar.unpack({:binary, binary}, :mini_hex, name, version)
+    dependencies = metadata["requirements"]
+    publish(name, version, files['CHECKSUM'], dependencies)
   end
 
   def publish(name, version, checksum, dependencies) do
