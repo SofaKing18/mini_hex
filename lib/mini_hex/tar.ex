@@ -78,20 +78,19 @@ defmodule MiniHex.Tar do
     end
   end
 
-  defp checksum(files, _repo, _name, _version) do
+  defp checksum(files, repo, name, version) do
     case Base.decode16(files['CHECKSUM'], case: :mixed) do
       {:ok, tar_checksum} ->
         meta              = files['metadata.config']
         blob              = files['VERSION'] <> meta <> files['contents.tar.gz']
 
-        # TODO: check registry checksum
-        # registry_checksum = Hex.Registry.Server.checksum(repo, to_string(name), version)
+        registry_checksum = Hex.Registry.Server.checksum(repo, to_string(name), version)
         checksum          = :crypto.hash(:sha256, blob)
 
         if checksum != tar_checksum,
           do: Mix.raise "Checksum mismatch in tarball"
-        # if checksum != registry_checksum,
-        #   do: Mix.raise "Checksum mismatch against registry"
+        if checksum != registry_checksum,
+          do: Mix.raise "Checksum mismatch against registry"
 
       :error ->
         Mix.raise "Checksum invalid"
