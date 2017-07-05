@@ -56,6 +56,14 @@ defmodule MiniHex.RouterTest do
     assert conn.status == 404
   end
 
+  test "/tarballs/:name_version.tar" do
+    :ok = Repository.publish("foo", "0.1.0", read_fixture("foo-0.1.0/foo-0.1.0.tar"))
+
+    conn = get("/tarballs/foo-0.1.0.tar")
+    assert conn.status == 200
+    assert conn.resp_body == read_fixture("foo-0.1.0/foo-0.1.0.tar")
+  end
+
   defp get(path) do
     conn = conn(:get, path)
     MiniHex.Router.call(conn, @opts)

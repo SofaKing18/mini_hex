@@ -29,6 +29,11 @@ defmodule MiniHex.Repository do
   end
 
   def publish(name, version, binary) when is_binary(binary) do
+    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
+    File.mkdir_p!(data_dir)
+    path = Path.join([data_dir, "#{name}-#{version}.tar"])
+    File.write!(path, binary)
+
     {:ok, files, metadata} = Tar.unpack({:binary, binary}, :mini_hex, name, version)
     dependencies = metadata["requirements"]
     publish(name, version, files['CHECKSUM'], dependencies)
