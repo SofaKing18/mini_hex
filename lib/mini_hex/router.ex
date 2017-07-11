@@ -31,8 +31,7 @@ defmodule MiniHex.Router do
   end
 
   get "/tarballs/:name_version_tar" do
-    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
-    path = Path.join(data_dir, name_version_tar)
+    path = Path.join(Repository.tarballs_dir(), name_version_tar)
     send_file(conn, 200, path)
   end
 

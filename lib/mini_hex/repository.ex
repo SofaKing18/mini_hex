@@ -4,7 +4,7 @@ defmodule MiniHex.Repository.Package do
 end
 
 defmodule MiniHex.Repository.Release do
-  @enforce_keys [:version]
+  @enforce_keys [:version, :checksum]
   defstruct [version: nil, checksum: "", dependencies: [], retired: nil]
 end
 
@@ -22,40 +22,71 @@ defmodule MiniHex.Repository do
   alias MiniHex.Repository.{Package, Release, RetirementStatus}
 
   @name __MODULE__
+  @repo :mini_hex
 
   def start_link() do
+    File.mkdir_p!(tarballs_dir())
     Agent.start_link(fn -> %{} end, name: @name)
   end
 
-  @keys ~w(app optional requirement)
+  def tarballs_dir() do
+    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
+    Path.join([data_dir, "tarballs"])
+  end
+
+  def tarball_path(name, version) do
+    Path.join([tarballs_dir(), "#{name}-#{version}.tar"])
+  end
+
+  def clear() do
+    Agent.update(@name, fn _ -> %{} end)
+  end
+
+  def packages() do
+    Agent.get(@name, &Map.values(&1))
+  end
+
+  def fetch(name) do
+    Agent.get(@name, &Map.fetch(&1, name))
+  end
+
+  ## Publish
 
   def publish(name, version, binary) when is_binary(binary) do
-    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
-    File.mkdir_p!(data_dir)
-    path = Path.join([data_dir, "#{name}-#{version}.tar"])
-    File.write!(path, binary)
+    File.write!(tarball_path(name, version), binary)
 
-    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, :mini_hex, name, version)
-
-    dependencies =
-      Enum.map(metadata["requirements"], fn list ->
-        Enum.into(list, %{}, fn
-          {"name", value} ->
-            {:package, value}
-          {key, value} when key in @keys ->
-            {String.to_atom(key), value}
-        end)
-      end)
+    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, @repo, name, version)
+    dependencies = build_dependencies(metadata["requirements"])
 
     publish(name, version, files['CHECKSUM'], dependencies)
   end
 
   def publish(name, version, checksum, dependencies) do
     release = %Release{version: version, checksum: checksum, dependencies: dependencies}
-    package = %Package{name: name, releases: [release]}
+    new_package = %Package{name: name, releases: [release]}
 
-    Agent.update(@name, &Map.update(&1, name, package, fn package -> add_release(package, release) end))
+    Agent.update(@name, &Map.update(&1, name, new_package, fn package -> add_release(package, release) end))
   end
+
+  @keys ~w(app optional requirement)
+
+  defp build_dependencies(requirements) do
+    Enum.map(requirements, fn list ->
+      Enum.into(list, %{}, fn
+        {"name", value} ->
+          {:package, value}
+        {key, value} when key in @keys ->
+          {String.to_atom(key), value}
+      end)
+    end)
+  end
+
+  defp add_release(package, release) do
+    true = not release.version in Enum.map(package.releases, & &1.version)
+    %{package | releases: package.releases ++ [release]}
+  end
+
+  ## Retire
 
   def retire(name, version, reason, message) do
     Agent.update(@name, &Map.update!(&1, name, fn package -> do_retire(package, version, reason, message) end))
@@ -73,22 +104,5 @@ defmodule MiniHex.Repository do
         end
       end)
     %{package | releases: releases}
-  end
-
-  defp add_release(package, release) do
-    true = not release.version in Enum.map(package.releases, & &1.version)
-    %{package | releases: package.releases ++ [release]}
-  end
-
-  def packages() do
-    Agent.get(@name, &Map.values(&1))
-  end
-
-  def fetch(name) do
-    Agent.get(@name, &Map.fetch(&1, name))
-  end
-
-  def clear() do
-    Agent.update(@name, fn _ -> %{} end)
   end
 end
