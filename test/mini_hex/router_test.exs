@@ -59,16 +59,14 @@ defmodule MiniHex.RouterTest do
   test "/packages/:name with dependencies" do
     :ok = Repository.publish("foo", "0.1.0", read_fixture("foo-0.1.0/foo-0.1.0.tar"))
     :ok = Repository.publish("bar", "0.1.0", read_fixture("bar-0.1.0/bar-0.1.0.tar"))
-    checksum = "AEC009CD3EDC2118CB43BCD6B7003F7776F3EB0AFCC8D5AA609DD57017BFC6F8"
+    checksum = "94F42470FA277089D11547597E4A7D05D3A4A98F42EDBBF851A822A09EA511FE"
 
     conn = get("/packages/bar")
     assert conn.status == 200
     assert RegistryBuilder.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "0.1.0", checksum: checksum, dependencies: [
-               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1"}]}]}
-               # TODO:
-               # %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
+               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
   end
 
   test "/tarballs/:name_version.tar" do

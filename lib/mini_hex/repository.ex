@@ -92,7 +92,7 @@ defmodule MiniHex.Repository do
     end)
   end
 
-  @keys ~w(app optional requirement)
+  @keys ~w(app optional requirement repository)
 
   defp build_dependencies(requirements) do
     Enum.map(requirements, fn list ->
