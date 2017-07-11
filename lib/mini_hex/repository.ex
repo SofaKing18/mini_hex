@@ -18,15 +18,35 @@ defmodule MiniHex.Repository.Dependency do
   defstruct [package: nil, requirement: "", optional: false, app: nil, repository: nil]
 end
 
+defmodule MiniHex.Repository.State do
+  @moduledoc false
+
+  def path() do
+    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
+    Path.join([data_dir, "state.bin"])
+  end
+
+  def load() do
+    case File.read(path()) do
+      {:ok, binary} -> :erlang.binary_to_term(binary)
+      {:error, :enoent} -> %{}
+    end
+  end
+
+  def dump(state) do
+    File.write!(path(), :erlang.term_to_binary(state))
+  end
+end
+
 defmodule MiniHex.Repository do
-  alias MiniHex.Repository.{Package, Release, RetirementStatus}
+  alias MiniHex.Repository.{Package, Release, RetirementStatus, State}
 
   @name __MODULE__
   @repo :mini_hex
 
   def start_link() do
     File.mkdir_p!(tarballs_dir())
-    Agent.start_link(fn -> %{} end, name: @name)
+    Agent.start_link(fn -> State.load() end, name: @name)
   end
 
   def tarballs_dir() do
@@ -65,7 +85,11 @@ defmodule MiniHex.Repository do
     release = %Release{version: version, checksum: checksum, dependencies: dependencies}
     new_package = %Package{name: name, releases: [release]}
 
-    Agent.update(@name, &Map.update(&1, name, new_package, fn package -> add_release(package, release) end))
+    Agent.update(@name, fn state ->
+      state = Map.update(state, name, new_package, &add_release(&1, release))
+      State.dump(state)
+      state
+    end)
   end
 
   @keys ~w(app optional requirement)
@@ -89,7 +113,11 @@ defmodule MiniHex.Repository do
   ## Retire
 
   def retire(name, version, reason, message) do
-    Agent.update(@name, &Map.update!(&1, name, fn package -> do_retire(package, version, reason, message) end))
+    Agent.update(@name, fn state ->
+      state = Map.update!(state, name, &do_retire(&1, version, reason, message))
+      State.dump(state)
+      state
+    end)
   end
 
   defp do_retire(package, version, reason, message) do
