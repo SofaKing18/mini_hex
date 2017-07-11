@@ -32,6 +32,8 @@ defmodule MiniHex.Registry do
   end
 
   def encode_package(_repository, signature, package) do
+    # TODO: consider taking more code from https://github.com/hexpm/hexpm/blob/492d21eb2376a3374bf315d693a3820ae9a3a6e9/lib/hexpm/repository/registry_builder.ex#L179:L204
+
     releases =
       Enum.map(package.releases, fn release ->
         release
