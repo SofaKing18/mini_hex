@@ -42,8 +42,8 @@ defmodule MiniHex.RouterTest do
     :ok = Repository.publish(read_fixture("foo-0.1.1/foo-0.1.1.tar"))
     :ok = Repository.retire("foo", "0.1.1", :RETIRED_SECURITY, "CVE-000")
 
-    checksum1 = "97B31E66E121F22985FD8B356B2FEFE9DA1670A5C526C3E2F39FE04315ABDD64"
-    checksum2 = "0E65581EAA7C69CFA092381D9B8A3F7F4A01A3D7682F4099446D457E46D0695F"
+    checksum1 = Base.decode16!("97B31E66E121F22985FD8B356B2FEFE9DA1670A5C526C3E2F39FE04315ABDD64")
+    checksum2 = Base.decode16!("0E65581EAA7C69CFA092381D9B8A3F7F4A01A3D7682F4099446D457E46D0695F")
 
     conn = get("/packages/foo")
     assert conn.status == 200
@@ -59,7 +59,7 @@ defmodule MiniHex.RouterTest do
   test "/packages/:name with dependencies" do
     :ok = Repository.publish(read_fixture("foo-0.1.0/foo-0.1.0.tar"))
     :ok = Repository.publish(read_fixture("bar-0.1.0/bar-0.1.0.tar"))
-    checksum = "94F42470FA277089D11547597E4A7D05D3A4A98F42EDBBF851A822A09EA511FE"
+    checksum = Base.decode16!("94F42470FA277089D11547597E4A7D05D3A4A98F42EDBBF851A822A09EA511FE")
 
     conn = get("/packages/bar")
     assert conn.status == 200

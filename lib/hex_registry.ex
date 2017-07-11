@@ -32,7 +32,13 @@ defmodule MiniHex.Registry do
   end
 
   def encode_package(_repository, signature, package) do
-    releases = Enum.map(package.releases, &remove_empty_retired/1)
+    releases =
+      Enum.map(package.releases, fn release ->
+        release
+        |> Map.update!(:checksum, &Base.decode16!/1)
+        |> remove_empty_retired()
+      end)
+
     encode(%{releases: releases}, :hex_pb_package, :Package, signature)
   end
 
