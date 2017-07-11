@@ -66,7 +66,9 @@ defmodule MiniHex.RouterTest do
     assert RegistryBuilder.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "0.1.0", checksum: checksum, dependencies: [
-               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
+               %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1"}]}]}
+               # TODO:
+               # %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
   end
 
   test "/tarballs/:name_version.tar" do
