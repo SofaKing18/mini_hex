@@ -34,20 +34,20 @@ defmodule HexTar do
     {tar, checksum}
   end
 
-  def extract(path, dest, repo, name, version) do
-    with {:ok, files, metadata} <- unpack(path, repo, name, version) do
+  def extract(path, dest, repo) do
+    with {:ok, files, metadata} <- unpack(path, repo) do
       extract_contents(files['contents.tar.gz'], dest)
       {:ok, files, metadata}
     end
   end
 
-  def unpack(path, repo, name, version) do
+  def unpack(path, repo) do
     case :erl_tar.extract(path, [:memory]) do
       {:ok, files} ->
         files = Enum.into(files, %{})
         check_version(files['VERSION'])
         check_files(files)
-        checksum(files, repo, name, version)
+        checksum(files, repo)
         {:ok, files, decode_metadata(files['metadata.config'])}
 
       :ok ->
@@ -78,7 +78,7 @@ defmodule HexTar do
     end
   end
 
-  defp checksum(files, _repo, _name, _version) do
+  defp checksum(files, _repo) do
     case Base.decode16(files['CHECKSUM'], case: :mixed) do
       {:ok, tar_checksum} ->
         meta              = files['metadata.config']

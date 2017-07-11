@@ -72,10 +72,11 @@ defmodule MiniHex.Repository do
 
   ## Publish
 
-  def publish(name, version, binary) when is_binary(binary) do
+  def publish(binary) when is_binary(binary) do
+    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, @repo)
+    name = metadata["name"]
+    version = metadata["version"]
     File.write!(tarball_path(name, version), binary)
-
-    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, @repo, name, version)
     dependencies = build_dependencies(metadata["requirements"])
 
     publish(name, version, files['CHECKSUM'], dependencies)
