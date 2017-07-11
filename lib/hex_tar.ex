@@ -1,5 +1,5 @@
 # Copied from https://github.com/hexpm/hex/blob/v0.16.0/lib/hex/tar.ex
-defmodule MiniHex.Tar do
+defmodule HexTar do
   @supported ["3"]
   @version "3"
   @required_files ~w(VERSION CHECKSUM metadata.config contents.tar.gz)c

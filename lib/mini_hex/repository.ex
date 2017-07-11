@@ -20,7 +20,6 @@ end
 
 defmodule MiniHex.Repository do
   alias MiniHex.Repository.{Package, Release, RetirementStatus}
-  alias MiniHex.Tar
 
   @name __MODULE__
 
@@ -36,7 +35,7 @@ defmodule MiniHex.Repository do
     path = Path.join([data_dir, "#{name}-#{version}.tar"])
     File.write!(path, binary)
 
-    {:ok, files, metadata} = Tar.unpack({:binary, binary}, :mini_hex, name, version)
+    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, :mini_hex, name, version)
 
     dependencies =
       Enum.map(metadata["requirements"], fn list ->
