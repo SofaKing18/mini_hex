@@ -2,7 +2,7 @@ defmodule MiniHex.RouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias MiniHex.{RegistryBuilder, Repository}
+  alias MiniHex.{Registry, Repository}
 
   @opts MiniHex.Router.init([])
 
@@ -14,14 +14,14 @@ defmodule MiniHex.RouterTest do
   test "/names" do
     conn = get("/names")
     assert conn.status == 200
-    assert RegistryBuilder.decode_names(conn.resp_body) == 
+    assert Registry.decode_names(conn.resp_body) == 
            %{packages: []}
 
     :ok = Repository.publish("foo", "0.1.0", read_fixture("foo-0.1.0/foo-0.1.0.tar"))
 
     conn = get("/names")
     assert conn.status == 200
-    assert RegistryBuilder.decode_names(conn.resp_body) ==
+    assert Registry.decode_names(conn.resp_body) ==
            %{packages: [%{name: "foo", repository: "mini_hex"}]}
   end
 
@@ -32,7 +32,7 @@ defmodule MiniHex.RouterTest do
 
     conn = get("/versions")
     assert conn.status == 200
-    assert RegistryBuilder.decode_versions(conn.resp_body) ==
+    assert Registry.decode_versions(conn.resp_body) ==
            %{packages: [
              %{name: "foo", versions: ["0.1.0", "0.1.1"], retired: [1], repository: "mini_hex"}]}
   end
@@ -47,7 +47,7 @@ defmodule MiniHex.RouterTest do
 
     conn = get("/packages/foo")
     assert conn.status == 200
-    assert RegistryBuilder.decode_package(conn.resp_body) ==
+    assert Registry.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "0.1.0", checksum: checksum1, dependencies: []},
              %{version: "0.1.1", checksum: checksum2, dependencies: [], retired: %{message: "CVE-000", reason: :RETIRED_SECURITY}}]}
@@ -63,7 +63,7 @@ defmodule MiniHex.RouterTest do
 
     conn = get("/packages/bar")
     assert conn.status == 200
-    assert RegistryBuilder.decode_package(conn.resp_body) ==
+    assert Registry.decode_package(conn.resp_body) ==
            %{releases: [
              %{version: "0.1.0", checksum: checksum, dependencies: [
                %{app: "foo", optional: false, package: "foo", requirement: "~> 0.1", repository: "mini_hex"}]}]}
