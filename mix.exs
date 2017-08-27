@@ -23,6 +23,7 @@ defmodule MiniHex.Mixfile do
       {:cowboy, "~> 1.0"},
       {:plug, "~> 1.3"},
       {:gpb, "~> 3.23"},
+      {:hex_tar, path: "../hex_tar"},
     ]
   end
 

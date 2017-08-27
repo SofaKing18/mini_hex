@@ -42,7 +42,6 @@ defmodule MiniHex.Repository do
   alias MiniHex.Repository.{Package, Release, RetirementStatus, State}
 
   @name __MODULE__
-  @repo :mini_hex
 
   def start_link() do
     File.mkdir_p!(tarballs_dir())
@@ -73,13 +72,15 @@ defmodule MiniHex.Repository do
   ## Publish
 
   def publish(binary) when is_binary(binary) do
-    {:ok, files, metadata} = HexTar.unpack({:binary, binary}, @repo)
-    name = metadata["name"]
-    version = metadata["version"]
-    File.write!(tarball_path(name, version), binary)
-    dependencies = build_dependencies(metadata["requirements"])
+    {:ok, {checksum, metadata, _files}} = :hex_tar.unpack({:binary, binary})
+    name = metadata.name
+    version = metadata.version
+    checksum = List.to_string(checksum)
 
-    publish(name, version, files['CHECKSUM'], dependencies)
+    File.write!(tarball_path(name, version), binary)
+    dependencies = build_dependencies(metadata.requirements)
+
+    publish(name, version, checksum, dependencies)
   end
 
   def publish(name, version, checksum, dependencies) do
@@ -93,16 +94,9 @@ defmodule MiniHex.Repository do
     end)
   end
 
-  @keys ~w(app optional requirement repository)
-
   defp build_dependencies(requirements) do
-    Enum.map(requirements, fn list ->
-      Enum.into(list, %{}, fn
-        {"name", value} ->
-          {:package, value}
-        {key, value} when key in @keys ->
-          {String.to_atom(key), value}
-      end)
+    Enum.map(requirements, fn {package, map} ->
+      Map.put(map, :package, package)
     end)
   end
 
