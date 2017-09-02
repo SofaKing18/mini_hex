@@ -20,8 +20,8 @@ defmodule MiniHex.Mixfile do
       {:cowboy, "~> 1.0"},
       {:plug, "~> 1.3"},
       {:gpb, "~> 3.23"},
-      {:hex_tar, path: "../hex_tar"},
-      {:hex_registry, path: "../hex_registry"},
+      {:hex_tar, github: "wojtekmach/hex_tar"},
+      {:hex_registry, github: "wojtekmach/hex_registry"}
     ]
   end
 end
