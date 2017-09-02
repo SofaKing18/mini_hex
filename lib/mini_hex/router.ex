@@ -1,8 +1,6 @@
 defmodule MiniHex.Router do
   use Plug.Router
-
   alias MiniHex.Repository
-  alias MiniHex.Registry
 
   plug Plug.Logger, log: :debug
   plug :match
@@ -13,20 +11,20 @@ defmodule MiniHex.Router do
 
   get "/names" do
     packages = Repository.packages()
-    body = Registry.encode_names(@repo, @signature, packages)
+    body = :hex_registry.encode_names(@repo, @signature, packages)
     send_resp(conn, 200, body)
   end
 
   get "/versions" do
     packages = Repository.packages()
-    body = Registry.encode_versions(@repo, @signature, packages)
+    body = :hex_registry.encode_versions(@repo, @signature, packages)
     send_resp(conn, 200, body)
   end
 
   get "/packages/:name" do
     case Repository.fetch(name) do
       {:ok, package} ->
-        body = Registry.encode_package(@repo, @signature, package)
+        body = :hex_registry.encode_package(@repo, @signature, package)
         send_resp(conn, 200, body)
       :error ->
         send_resp(conn, 404, "not found")
