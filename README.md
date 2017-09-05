@@ -4,11 +4,8 @@
 
 ## Usage
 
-    # use unreleased hex code
-    cd /path/to/hex
-    git fetch
-    git checkout wm-dependency-repository
-    mix install
+    # use latest Hex client (v0.17+)
+    mix local.hex --force
 
     # Start server
     cd /path/to/mini_hex
