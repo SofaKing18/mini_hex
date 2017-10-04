@@ -1,25 +1,6 @@
-defmodule MiniHex.Repository.State do
-  @moduledoc false
-
-  def path() do
-    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
-    Path.join([data_dir, "state.bin"])
-  end
-
-  def load() do
-    case File.read(path()) do
-      {:ok, binary} -> :erlang.binary_to_term(binary)
-      {:error, :enoent} -> %{}
-    end
-  end
-
-  def dump(state) do
-    File.write!(path(), :erlang.term_to_binary(state))
-  end
-end
-
 defmodule MiniHex.Repository do
   alias MiniHex.Repository.State
+  alias MiniHex.Repository.Publisher
 
   @name __MODULE__
 
@@ -49,29 +30,45 @@ defmodule MiniHex.Repository do
     Agent.get(@name, &Map.fetch(&1, name))
   end
 
-  ## Publish
-
   def publish(binary) when is_binary(binary) do
+    Agent.update(@name, fn state ->
+      state = Publisher.publish(state, binary)
+      State.dump(state)
+      state
+    end)
+  end
+
+  def retire(name, version, reason, message) do
+    Agent.update(@name, fn state ->
+      state = Publisher.retire(state, name, version, reason, message)
+      State.dump(state)
+      state
+    end)
+  end
+end
+
+defmodule MiniHex.Repository.Publisher do
+  @moduledoc false
+
+  alias MiniHex.Repository
+
+  def publish(state, binary) do
     {:ok, {checksum, metadata, _files}} = :hex_tar.unpack({:binary, binary})
     name = metadata.name
     version = metadata.version
     checksum = List.to_string(checksum)
 
-    File.write!(tarball_path(name, version), binary)
     dependencies = build_dependencies(metadata.requirements)
-
-    publish(name, version, checksum, dependencies)
-  end
-
-  def publish(name, version, checksum, dependencies) do
     release = %{version: version, checksum: checksum, dependencies: dependencies}
     new_package = %{name: name, releases: [release]}
 
-    Agent.update(@name, fn state ->
-      state = Map.update(state, name, new_package, &add_release(&1, release))
-      State.dump(state)
-      state
-    end)
+    File.write!(Repository.tarball_path(name, version), binary)
+    Map.update(state, name, new_package, &add_release(&1, release))
+  end
+
+  defp add_release(package, release) do
+    true = not release.version in Enum.map(package.releases, & &1.version)
+    %{package | releases: package.releases ++ [release]}
   end
 
   defp build_dependencies(requirements) do
@@ -80,19 +77,8 @@ defmodule MiniHex.Repository do
     end)
   end
 
-  defp add_release(package, release) do
-    true = not release.version in Enum.map(package.releases, & &1.version)
-    %{package | releases: package.releases ++ [release]}
-  end
-
-  ## Retire
-
-  def retire(name, version, reason, message) do
-    Agent.update(@name, fn state ->
-      state = Map.update!(state, name, &do_retire(&1, version, reason, message))
-      State.dump(state)
-      state
-    end)
+  def retire(state, name, version, reason, message) do
+    Map.update!(state, name, &do_retire(&1, version, reason, message))
   end
 
   defp do_retire(package, version, reason, message) do
@@ -107,5 +93,25 @@ defmodule MiniHex.Repository do
         end
       end)
     %{package | releases: releases}
+  end
+end
+
+defmodule MiniHex.Repository.State do
+  @moduledoc false
+
+  def path() do
+    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
+    Path.join([data_dir, "state.bin"])
+  end
+
+  def load() do
+    case File.read(path()) do
+      {:ok, binary} -> :erlang.binary_to_term(binary)
+      {:error, :enoent} -> %{}
+    end
+  end
+
+  def dump(state) do
+    File.write!(path(), :erlang.term_to_binary(state))
   end
 end
