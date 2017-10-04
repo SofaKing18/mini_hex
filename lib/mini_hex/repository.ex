@@ -1,23 +1,3 @@
-defmodule MiniHex.Repository.Package do
-  @enforce_keys [:name]
-  defstruct [name: nil, releases: []]
-end
-
-defmodule MiniHex.Repository.Release do
-  @enforce_keys [:version, :checksum]
-  defstruct [version: nil, checksum: "", dependencies: [], retired: nil]
-end
-
-defmodule MiniHex.Repository.RetirementStatus do
-  @enforce_keys [:reason]
-  defstruct [reason: nil, message: nil]
-end
-
-defmodule MiniHex.Repository.Dependency do
-  @enforce_keys [:package, :requirement]
-  defstruct [package: nil, requirement: "", optional: false, app: nil, repository: nil]
-end
-
 defmodule MiniHex.Repository.State do
   @moduledoc false
 
@@ -39,7 +19,7 @@ defmodule MiniHex.Repository.State do
 end
 
 defmodule MiniHex.Repository do
-  alias MiniHex.Repository.{Package, Release, RetirementStatus, State}
+  alias MiniHex.Repository.State
 
   @name __MODULE__
 
@@ -84,8 +64,8 @@ defmodule MiniHex.Repository do
   end
 
   def publish(name, version, checksum, dependencies) do
-    release = %Release{version: version, checksum: checksum, dependencies: dependencies}
-    new_package = %Package{name: name, releases: [release]}
+    release = %{version: version, checksum: checksum, dependencies: dependencies}
+    new_package = %{name: name, releases: [release]}
 
     Agent.update(@name, fn state ->
       state = Map.update(state, name, new_package, &add_release(&1, release))
@@ -121,7 +101,7 @@ defmodule MiniHex.Repository do
     releases =
       Enum.map(package.releases, fn release ->
         if release.version == version do
-          %{release | retired: %RetirementStatus{reason: reason, message: message}}
+          Map.put(release, :retired, %{reason: reason, message: message})
         else
           release
         end
