@@ -1,5 +1,6 @@
 defmodule MiniHex.Router do
   use Plug.Router
+  use MiniHex.Storage
   alias MiniHex.Repository
 
   plug Plug.Logger, log: :debug
@@ -33,7 +34,14 @@ defmodule MiniHex.Router do
 
   get "/tarballs/:name_version_tar" do
     path = Path.join(Repository.tarballs_dir(), name_version_tar)
-    send_file(conn, 200, path)
+    {:ok, binary} = Storage.read(path) 
+    conn
+    |> put_resp_header(
+          "content-disposition",
+          ~s[attachment; filename="#{name_version_tar}"]
+        )
+    |> 
+    send_resp(200, binary)
   end
 
   match _ do

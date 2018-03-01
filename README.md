@@ -21,6 +21,25 @@
     cd test/fixtures/bar-0.1.0
     mix deps.get
 
+## Alternative Storage
+    
+    set WebDav storage:
+
+    # config.exs 
+
+    config :mini_hex, data_dir: "tmp/data"
+
+    config :mini_hex,  
+      storage: :dav,
+      wed_dav:
+        [
+          host: "http://localhost:8888/",
+          user: "test",
+          password: "test"
+        ]
+
+
+
 ## License
 
 MIT
