@@ -1,17 +1,23 @@
 defmodule MiniHex.Repository do
   alias MiniHex.Repository.State
   alias MiniHex.Repository.Publisher
+  use MiniHex.Storage
 
   @name __MODULE__
 
   def start_link() do
-    File.mkdir_p!(tarballs_dir())
+    make_tarballs_dir()
     Agent.start_link(fn -> State.load() end, name: @name)
   end
 
+  def make_tarballs_dir() do
+    if !Storage.exists?(tarballs_dir()) do
+      Storage.mkdir_p!(tarballs_dir())
+    end
+  end
+
   def tarballs_dir() do
-    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
-    Path.join([data_dir, "tarballs"])
+    Path.join([Storage.data_dir(), "tarballs"])
   end
 
   def tarball_path(name, version) do
@@ -49,7 +55,7 @@ end
 
 defmodule MiniHex.Repository.Publisher do
   @moduledoc false
-
+  use MiniHex.Storage
   alias MiniHex.Repository
 
   def publish(state, binary) do
@@ -61,8 +67,8 @@ defmodule MiniHex.Repository.Publisher do
     dependencies = build_dependencies(metadata.requirements)
     release = %{version: version, checksum: checksum, dependencies: dependencies}
     new_package = %{name: name, releases: [release]}
-
-    File.write!(Repository.tarball_path(name, version), binary)
+    
+    Storage.write!(Repository.tarball_path(name, version), binary)
     Map.update(state, name, new_package, &add_release(&1, release))
   end
 
@@ -98,20 +104,22 @@ end
 
 defmodule MiniHex.Repository.State do
   @moduledoc false
+  use MiniHex.Storage
 
   def path() do
-    data_dir = Application.fetch_env!(:mini_hex, :data_dir)
-    Path.join([data_dir, "state.bin"])
+    Path.join([Storage.data_dir(), "state.bin"])
   end
 
   def load() do
-    case File.read(path()) do
-      {:ok, binary} -> :erlang.binary_to_term(binary)
-      {:error, :enoent} -> %{}
+      case Storage.read(path()) do
+        {:ok, data} -> 
+          :erlang.binary_to_term(data)
+        
+        {:error, :enoent} -> %{}
     end
   end
 
   def dump(state) do
-    File.write!(path(), :erlang.term_to_binary(state))
+    Storage.write!(path(), :erlang.term_to_binary(state))
   end
 end

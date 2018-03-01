@@ -21,7 +21,8 @@ defmodule MiniHex.Mixfile do
       {:plug, "~> 1.3"},
       {:gpb, "~> 3.23"},
       {:hex_tar, github: "wojtekmach/hex_tar"},
-      {:hex_registry, github: "wojtekmach/hex_registry"}
+      {:hex_registry, github: "wojtekmach/hex_registry"},
+      {:catalyst, "~> 0.2.1"}
     ]
   end
 end

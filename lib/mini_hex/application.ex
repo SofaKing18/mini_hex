@@ -7,6 +7,9 @@ defmodule MiniHex.Application do
     import Supervisor.Spec
 
     port = Application.fetch_env!(:mini_hex, :port)
+
+    Supervisor.start_link(MiniHex.Storage.worker(), [strategy: :one_for_one, name: MiniHex.Storage]) 
+
     children = [
       worker(MiniHex.Repository, []),
       Plug.Adapters.Cowboy.child_spec(:http, MiniHex.Router, [], [port: port])
