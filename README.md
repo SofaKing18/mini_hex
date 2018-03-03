@@ -1,7 +1,9 @@
 # MiniHex
 
-**Work in progresss**: A minimal Hex Repository. See: https://github.com/hexpm/specifications/blob/master/endpoints.md#repository
+[![Build Status](https://travis-ci.org/SofaKing18/mini_hex.svg?branch=master)](https://travis-ci.org/SofaKing18/mini_hex)
 
+**Work in progresss**: A minimal Hex Repository. See: https://github.com/hexpm/specifications/blob/master/endpoints.md#repository
+ 
 ## Usage
 
     # use latest Hex client (v0.17+)
